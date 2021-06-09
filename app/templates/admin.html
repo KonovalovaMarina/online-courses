@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div id="wrapper">
+
+        {% include "navbar_admin.html" %}
+
+        <!-- Page Content -->
+        <div id="page-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">Личный кабинет</h1>
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <h2>Логин: {{ current_user.login }}</h2>
+                <!-- /.row -->
+            </div>
+            <!-- /.container-fluid -->
+        </div>
+        <!-- /#page-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+{% endblock %}

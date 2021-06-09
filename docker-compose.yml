@@ -1,0 +1,44 @@
+version: "3"
+services:
+  web:
+    build: .
+    container_name: online-courses
+    restart: on-failure:3
+    ports:
+      - "5000:5000"
+    links:
+      - db
+    depends_on:
+      - db
+    environment:
+      - DB_URI=postgresql+psycopg2://academy:12345678@db:5432/academy
+      - SOLUTIONS_REPO_PATH=/usr/src/solutions_repo/
+      - SOLUTIONS_REPO_SSH_KEY=/root/.ssh/id_rsa_marina
+      - BASE_URL=https://online-courses.eu.ngrok.io
+    volumes:
+      - ./app/uploads:/usr/src/online-courses/app/uploads
+      - solutions_repo:/usr/src/solutions_repo/
+      - ~/.ssh:/root/.ssh/
+
+  ngrok:
+    image: wernight/ngrok
+    links:
+      - web
+    command: sh -c "ngrok authtoken 1rkPnPd0cj5nPmv9cVlQxXtwhiB_VsQDuC14e5fxDqvcUgHM && ngrok http --region=eu --hostname=online-courses.eu.ngrok.io web:5000"
+
+  db:
+    image: postgres
+    container_name: database
+    restart: on-failure:3
+    environment:
+      POSTGRES_USER: academy
+      POSTGRES_PASSWORD: 12345678
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+volumes:
+  postgres_data:
+  solutions_repo:
+  uploads_data:

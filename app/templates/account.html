@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div id="wrapper">
+
+        {% include "navbar.html" %}
+
+        <!-- Page Content -->
+        <div id="page-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">Личный кабинет</h1>
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <h2>Логин: {{ current_user.login }}</h2>
+                <!-- /.row -->
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Мои курсы</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <div class="row">
+                {% if course %}
+                <div class="col-lg-3 col-md-6">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge">{{ course.name }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-footer">
+                            <form action="" method="post">
+                                <div class="row" style="margin-left: -5px">
+                                    <input class="col btn btn-danger" type="submit" name="{{ course_unsubscribe }}" value="Отписаться">
+
+                                        <a class="col btn btn-primary" href="{{ url_for('courses.course_details', name=course.name) }}" role="button">Перейти к курсу</a>
+                                        <a class="col btn btn-primary" href="{{ url_for('courses.marks', course_name=course.name) }}" role="button">Оценки</a>
+
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+            <!-- /.container-fluid -->
+        </div>
+        <!-- /#page-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+{% endblock %}

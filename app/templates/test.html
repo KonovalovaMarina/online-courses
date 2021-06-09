@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div id="wrapper">
+
+        {% include "navbar_admin.html" %}
+
+        <!-- Page Content -->
+        <div id="page-wrapper">
+            <div class="container-fluid">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Создать курс
+                    </div>
+                    <div class="panel-body">
+
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Добавить лекции
+                    </div>
+                    <div class="panel-body">
+                            <form action="" method="post">
+                                {{ form.name }}
+                                <button type="button" id="addNewItemButton">Add Field</button>
+                                {{ form.flist }}
+                                {{ form.submit }}
+                            </form>
+                    </div>
+                </div>
+            </div>
+
+            <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+
+            <script>
+                    var fieldNum = 0;
+                    $("#addNewItemButton").click(function() {
+                    var newInput = $("<input type="text"></br>")
+                        .attr("class", "form-control")
+                        .attr("id", "flist-" + fieldNum)
+                        .attr("name", "flist-" + fieldNum)
+                        .attr("rows", "3")
+                    $("#flist").append(newInput);
+                    fieldNum++;
+                    });
+            </script>
+        </div>
+    </div>
+{% endblock %}

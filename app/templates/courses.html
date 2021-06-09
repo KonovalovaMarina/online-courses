@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div id="wrapper">
+
+        {% include "navbar.html" %}
+
+        <div id="page-wrapper">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Курсы</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <div class="row">
+                {% for course in courses %}
+                <div class="col-lg-3 col-md-6">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge">{{ course.name }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% set course_subscribe = course.name + '_subscribe' %}
+                        {% set course_unsubscribe = course.name + '_unsubscribe' %}
+                        <div class="panel-footer">
+                            <form action="" method="post">
+                                <div class="row" style="margin-left: -5px">
+                                    {% if course.id in enroll %}
+                                        <input class="col btn btn-danger" type="submit" name="{{ course_unsubscribe }}" value="Отписаться">
+                                        <a class="col btn btn-primary" href="{{ url_for('courses.course_details', name=course.name) }}" role="button">Перейти к курсу</a>
+                                    {% else %}
+                                        <input class="btn btn-success" type="submit" name="{{ course_subscribe }}" value="Записаться">
+                                    {% endif %}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% for category, message in get_flashed_messages(with_categories=true, category_filter=["error_courses"]) %}
+            <div class="alert alert-danger" style="width: 25%">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+    <!-- /#wrapper -->
+{% endblock %}

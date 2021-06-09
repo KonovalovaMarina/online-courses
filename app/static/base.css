@@ -1,0 +1,130 @@
+/* base */
+body {
+	color: #000000;
+	font: 20px 'Oswald', sans-serif;
+	background-color: #f8f8f8;
+	margin: 0;
+}
+
+#wrapper {
+	max-width: 80%;
+	margin: auto;
+	background: rgba(255, 255, 255, 0.7);
+}
+
+nav a {
+	text-decoration: none;
+}
+
+nav ul {
+	margin: 0;
+	padding: 0;
+}
+
+nav li {
+	list-style-position: inside;
+	font: 14px 'Oswald', sans-serif;
+	padding: 10px;
+}
+
+.top-menu {	background: rgb(165, 42, 42, 0.5)}
+
+.top-menu li {
+	display: inline-block;
+	padding: 10px 30px;
+	margin: 0;
+}
+
+.top-menu li.active {
+	background: #A52A2A;
+	color: #ffffff;
+}
+
+.top-menu a {
+	color: #333333;
+}
+
+#heading {
+	margin: 30px 0;
+	padding-left: 20px;
+}
+
+h1 {
+	display: inline-block;
+	color: #A52A2A;
+	font: 40px/40px 'Oswald', sans-serif;
+	margin: 0;
+	padding: 0 10px;
+}
+
+/* login */
+
+.error {
+    padding: 40px 30px;
+    color: #A52A2A;
+    font: 20px 'Oswald', sans-serif;
+}
+
+input[type=text], input[type=password] {
+      width: 40%;
+      padding:10px 20px;
+      margin: 8px 30px;
+      font: 20px 'Oswald', sans-serif;
+      border:0;
+      box-shadow:0 0 15px 4px rgba(20,20,20,0.06);
+      float: right;
+}
+
+input[type=submit]{
+    background-color: rgba(20,20,20,0.1);
+    border: none;
+    color: #333333;
+    padding:10px 20px;
+    margin: 8px 30px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+input[type=checkbox]
+{
+      padding:10px 20px;
+      margin: 8px 30px;
+      float:right;
+}
+
+input:focus {
+    outline: none;
+    border: 3px solid #555;
+}
+
+form{
+    width: 40%;
+    min-width: 300px;
+    border: 2px solid #A52A2A;
+    border-radius: 4px;
+    padding: 12px 30px;
+    margin: 8px 30px;
+    box-shadow:0 0 15px 4px rgba(20,20,20,0.4);
+}
+
+form p{
+    padding: 12px 10px;
+    margin: 8px 20px;
+    clear:both;
+    text-align:right;
+}
+
+.form-label {
+    font: 20px 'Oswald', sans-serif;
+    color: #333333
+    padding:10px 20px;
+    float: left;
+}
+
+@media screen and (max-width: 1247px) {
+    input[type=text], input[type=password] {
+        width: 60%;
+        margin-top: 5;
+        min-width: 125px;
+    }
+}

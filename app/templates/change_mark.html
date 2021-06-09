@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div id="wrapper">
+
+        {% include "navbar_admin.html" %}
+
+        <!-- Page Content -->
+        <div id="page-wrapper">
+            <div class="container-fluid">
+                <div class="panel panel-default">
+                            <div class="panel-heading">
+                                Изменить оценку
+                            </div>
+                            <div class="panel-body">
+                                <form role="form" action="" method="post">
+                                    <div class="form-group">
+                                         {{ form.course_name.label() }}
+                                         {{ form.course_name(class="form-control") }}
+                                    </div>
+                                    <div class="form-group">
+                                        {{ form.username.label() }}
+                                        {{ form.username(class="form-control") }}
+                                    </div>
+                                    <div class="form-group">
+                                        {{ form.module_name.label() }}
+                                        {{ form.module_name(class="form-control") }}
+                                    </div>
+                                    <div class="form-group">
+                                        {{ form.mark.label() }}
+                                        {{ form.mark(class="form-control", placeholder="Введите оценку") }}
+                                    </div>
+                                    <div class="form-group">
+                                        {{ form.submit(class="btn btn-default") }}
+                                    </div>
+                                </form>
+                            </div>
+                </div>
+            </div>
+            {% for category, message in get_flashed_messages(with_categories=true, category_filter=["success_ch_m"]) %}
+                <div class="alert alert-success" style="width: 25%">
+                    {{ message }}
+                </div>
+		    {% endfor %}
+            {% for category, message in get_flashed_messages(with_categories=true, category_filter=["error_ch_m"]) %}
+                <div class="alert alert-danger" style="width: 25%">
+                    {{ message }}
+                </div>
+		    {% endfor %}
+            {% for error in form.mark.errors %}
+                <div class="alert alert-danger" style="width: 25%">
+                    {{ error }}
+                </div>
+            {% endfor %}
+
+            <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+            <script>
+                "use strict";
+
+                var courses = {{ courses|tojson }};
+                var courses_modules = {{ modules|tojson }};
+
+                var form = $('form');
+                var course = $('select#course_name');
+                var user = $('select#username');
+                var module = $('select#module_name');
+
+                for (var key in courses) {
+                    course.append($('<option/>', {'value': key, 'text': key}));
+                }
+
+                course.change(function(ev) {
+                    user.empty();
+                    user.append($('<option/>'));
+                    module.empty();
+                    module.append($('<option/>'));
+
+                    var users = courses[course.val()];
+                    var modules = courses_modules[course.val()];
+
+                    for (var i in users) {
+                        user.append($('<option/>', {'value': users[i], 'text': users[i]}));
+                    }
+                    for (var i in modules) {
+                        module.append($('<option/>', {'value': modules[i], 'text': modules[i]}));
+                    }
+                });
+            </script>
+        </div>
+    </div>
+{% endblock %}

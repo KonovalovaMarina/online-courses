@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block scripts %}
+    <script type="application/javascript">
+        $('#theModal').on('show.bs.modal', function (e) {
+            var button = $(e.relatedTarget)
+            var modal = $(this)
+            modal.find('.modal-body').load(button.data("content"),
+                function (responseText, textStatus, xhr) {
+                    if (textStatus === 'error') {
+                        modal.find('.modal-body').html('Не удалось получить лог')
+                    }
+                })
+        })
+    </script>
+{% endblock %}
+{% block content %}
+
+    <div id="wrapper">
+
+        {% include "navbar.html" %}
+
+        <!-- Page Content -->
+        <div id="page-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">{{ lecture.name }}</h1>
+                    </div>
+                    <!-- /.col-lg-12 -->
+                </div>
+                <!-- /.row -->
+
+                <div class="panel panel-default">
+                    <!-- /.panel-heading -->
+                    <div class="panel-body">
+                        <p class="h1">{{ task.name }}</p>
+                        <div>{{ task.text | safe }}</div>
+                            <hr>
+                            {% if solutions %}
+                                <p class="h4">Отправленные решения</p>
+                                <hr>
+                                <table class="table">
+                                    <thead>
+                                    <tr>
+                                        <th scope="col">Номер коммита</th>
+                                        <th scope="col">Ветка</th>
+                                        <th scope="col">Файл</th>
+                                        <th scope="col">Статус</th>
+                                        <th scope="col">Лог</th>
+                                        <th scope="col">Отправлено</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for solution in solutions %}
+                                        <tr>
+                                            <th scope="row">{{ solution.commit_sha }}</th>
+                                            <td>{{ solution.branch_name }}</td>
+                                            <td><a href="{{ solution.file.locate() }}">
+                                                {{ solution.task.code }}{{ solution.file.extension }}</a></td>
+                                            <td>{{ solution.status.value }}</td>
+                                            <td>{% if solution.logs %}
+                                                <a href="#theModal" class="nav-link"
+                                                   data-content="{{ solution.logs.locate() }}" data-toggle="modal"
+                                                   data-target="#theModal">result.log</a>
+                                            {% endif %}
+                                            </td>
+                                            <td>{{ solution.created_at }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                                <div class="modal fade" id="theModal" tabindex="-1" role="dialog">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal">&times;
+                                                </button>
+                                                <h4 class="modal-title">Лог выполнения</h4>
+                                            </div>
+                                            <pre class="modal-body"></pre>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                    Close
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            {% endif %}
+
+                            <form method="post" action="{{ url_for('courses.task_details', task_id=task.id) }}"
+                                  enctype="multipart/form-data">
+                                {{ form.csrf_token() }}
+                                <div class="row">
+                                    <div class="col-sm-6 form-group">
+                                        <label>Файл с решением {{ task.code }}.py</label>
+                                        {{ form.file(class="form-control-file") }}
+                                        {% for error in form.file.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="col-12 form-group">
+                                        <button class="btn btn-primary" type="submit">Отправить решение</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.container-fluid -->
+        </div>
+        <!-- /#page-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+{% endblock %}

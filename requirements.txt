@@ -1,0 +1,20 @@
+# gitlab
+flask
+wtforms
+flask_login
+flask_sqlalchemy
+flask_bootstrap
+flask_wtf
+psycopg2-binary
+gspread
+oauth2client
+requests
+SQLAlchemy
+Werkzeug
+gitpython
+pytest
+python-gitlab
+sqlalchemy-utils
+passlib
+sqlalchemy-media
+libmagic

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+  <div id="wrapper">
+        {% include "navbar.html" %}
+        <!-- Page Content -->
+        <div id="page-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">{{ course_name }}</h1>
+                    </div>
+                </div>
+
+
+                <div class="panel panel-default">
+                        <div class="panel-heading">
+                          <h1>Лекции</h1>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <ul class="timeline">
+                              {% for lecture in lectures %}
+                                  {% set count_lecture = loop.index %}
+                                  {% if (count_lecture % 2) == 1 %}
+                                  <li>
+                                      <div class="timeline-badge"><i> {{ count_lecture }} </i>
+                                      </div>
+                                      <div class="timeline-panel">
+                                          <div class="timeline-heading">
+                                              <h4 class="timeline-title">{{ lecture.name }}</h4>
+                                          </div>
+                                          <div class="timeline-body">
+                                              <p>Описание лекции. Описание лекции. Описание лекции. Описание лекции. Описание лекции. Описание лекции.Описание лекции. Описание лекции. Описание лекции.Описание лекции. Описание лекции. Описание лекции.</p>
+                                              <div class="btn-group">
+                                                <a class="col btn btn-success" href="{{ url_for('courses.lecture_details', course_name=course_name, lecture_name=lecture.name) }}" role="button">Перейти к лекции</a>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </li>
+                                  {% else %}
+                                  <li class="timeline-inverted">
+                                      <div class="timeline-badge"><i> {{ count_lecture }} </i>
+                                      </div>
+                                      <div class="timeline-panel">
+                                          <div class="timeline-heading">
+                                              <h4 class="timeline-title">{{ lecture.name }}</h4>
+                                          </div>
+                                          <div class="timeline-body">
+                                            <p>Описание лекции. Описание лекции. Описание лекции. Описание лекции. Описание лекции. Описание лекции.Описание лекции. Описание лекции. Описание лекции.Описание лекции. Описание лекции. Описание лекции.</p>
+                                            <div class="btn-group">
+                                              <a class="col btn btn-success" href="{{ url_for('courses.lecture_details', course_name=course_name, lecture_name=lecture.name) }}" role="button">Перейти к лекции</a>
+                                            </div>
+                                          </div>
+                                      </div>
+                                  </li>
+                                  {% endif %}
+                              {% endfor %}
+                            </ul>
+                        </div>
+                        <!-- /.panel-body -->
+                </div>
+            </div>
+        </div>
+  </div>
+{% endblock %}

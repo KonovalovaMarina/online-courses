@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div id="wrapper">
+
+        {% include "navbar_admin.html" %}
+
+        <!-- Page Content -->
+        <div id="page-wrapper">
+            <div class="container-fluid">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Создать курс
+                    </div>
+                    <div class="panel-body">
+                        <form role="form" action="" method="post">
+                            <div class="form-group">
+                                {{ form_course.course_name.label() }}
+                                {{ form_course.course_name(class="form-control") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form_course.submit(class="btn btn-default") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        Добавить лекции
+                    </div>
+                    <div class="panel-body">
+                        <form role="form" action="" method="post">
+                            <div class="form-group">
+                                {{ form_lecture.course_name_lecture.label() }}
+                                {{ form_lecture.course_name_lecture(class="form-control") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form_lecture.lecture_name.label() }}
+                                {{ form_lecture.lecture_name(class="form-control") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form_lecture.lecture_video.label() }}
+                                {{ form_lecture.lecture_video(class="form-control") }}
+                            </div>
+                            <div class="form-group">
+                                {{ form_lecture.submit(class="btn btn-default") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% for category, message in get_flashed_messages(with_categories=true, category_filter=["success_ch_m"]) %}
+                <div class="alert alert-success" style="width: 25%">
+                    {{ message }}
+                </div>
+		    {% endfor %}
+            {% for category, message in get_flashed_messages(with_categories=true, category_filter=["error_ch_m"]) %}
+                <div class="alert alert-danger" style="width: 25%">
+                    {{ message }}
+                </div>
+		    {% endfor %}
+
+
+            <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+            <script>
+                "use strict";
+
+                var courses = {{ courses }};
+                var course = $('select#course_name');
+                for (var c in courses) {
+                    course.append($('<option/>', {'value': c, 'text': c}));
+                }
+                course.append($('<option/>', {'value': '123', 'text': '123'}));
+                });
+            </script>
+        </div>
+    </div>
+{% endblock %}

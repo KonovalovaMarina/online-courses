@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<div id="wrapper">
+    {% include "navbar_admin.html" %}
+    <div id="page-wrapper">
+        <div class="container-fluid">
+
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            Таблицы успеваемости
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                {% for course, course_marks in users_marks.items()%}
+                                <table class="table table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th>{{course}}</th>
+                                    </tr>
+                                    </thead>
+
+                                    {% for user_name, marks in course_marks.items() %}
+
+                                        <thead>
+                                            <tr>
+                                                <th>Modules</th>
+                                                {% for module, _ in marks %}
+                                                <th>{{module}}</th>
+                                                {% endfor %}
+
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            <tr>
+                                                <td>{{user_name}}</td>
+                                                {% for _, mark in marks %}
+                                                <td>{{mark}}</td>
+                                                {% endfor %}
+                                            </tr>
+                                        </tbody>
+
+                                    {% endfor %}
+                                </table>
+                                {% endfor %}
+                            </div>
+                            <!-- /.table-responsive -->
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
