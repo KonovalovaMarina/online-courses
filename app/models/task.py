@@ -58,7 +58,7 @@ class TaskSolution(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now)
 
     update_token = db.Column(UUID(as_uuid=True), unique=True, default=uuid.uuid4)
-    branch_name = db.Column(db.String(50))
+    branch_name = db.Column(db.String(200))
 
     task: Task = so.relationship(Task, backref=so.backref("solutions", cascade="all,delete-orphan"))
     user: User = so.relationship(User, backref=so.backref("solutions", cascade="all,delete-orphan"))
