@@ -1,5 +1,6 @@
 import typing as t
-from datetime import datetime
+from collections import defaultdict
+from datetime import datetime, timedelta
 
 from flask import Blueprint, abort, flash, make_response, redirect, render_template, request, url_for
 from flask_login import current_user
@@ -7,7 +8,7 @@ from flask_login import current_user
 from app.git_api import commit_solution
 from app.auth.decorators import login_required
 from app.courses.forms import AddLectureForm, ChangeMarkForm, UpdateSolutionForm, CreateCourseForm, SendSolutionForm
-from app.helper import COURSES, add_course, change_mark
+from app.helper import COURSES, add_course
 from app.models import (
     SolutionLogsFile, TaskSolution, db, Course, Enrollment, Lecture, Mark, Module, Task, User, UserRole, SolutionFile,
     StoreManager
@@ -16,59 +17,51 @@ from app.models import (
 courses_bp = Blueprint('courses', __name__)
 
 
-# TODO: придумать как обновлять оценку
-@courses_bp.route("/update_mark/<username>/<module_name>/", methods=["post"])
-@login_required(roles=[UserRole.admin])
-def update_mark(username, module_name):
-    if course[module_name] < datetime.now(tz=None):
-        change_mark(username, module_name, 10)
-    else:
-        change_mark(username, module_name, 5)
-
-
 @courses_bp.route("/courses/change_mark/", methods=["post", "get"])
 @login_required(roles=[UserRole.admin])
 def change_marks():
     form = ChangeMarkForm()
-    users: t.Dict[str, t.List[str]] = {}
-    modules: t.Dict[str, t.List[str]] = {}
 
-    for course in COURSES:
-        users[course] = []
-        modules[course] = []
-        names_query = db.session.query(Course, Enrollment, User) \
+    if form.validate_on_submit():
+        user = db.session.query(User).filter(User.login == form.username.data).first()
+        task = db.session.query(Task).filter(Task.name == form.task_name.data).first()
+        task_solution = db.session.query(TaskSolution).filter_by(
+            task=task, user=user
+        ).order_by(TaskSolution.created_at.desc()).first()
+
+        if task_solution:
+            task_solution.mark = form.mark.data
+            db.session.commit()
+
+        flash("Оценка была изменена", "success_ch_m")
+        return redirect(url_for("courses.change_marks"))
+
+    users: t.Dict[str, t.List[str]] = defaultdict(list)
+    tasks: t.Dict[str, t.List[str]] = defaultdict(list)
+
+    for course in db.session.query(Course).all():
+        users_query = db.session.query(User) \
+            .join(Enrollment) \
             .join(Course, Enrollment.course_id == Course.id) \
-            .join(User, User.id == Enrollment.user_id) \
-            .filter(Course.name == course) \
-            .all()
-        modules_name = db.session.query(Module, Course) \
-            .join(Course, Module.course_id == Course.id) \
-            .filter(Course.name == course) \
+            .filter(Course.id == course.id) \
             .all()
 
-        for _, _, name in names_query:
-            users[course].append(name.login)
+        tasks_query = db.session.query(Task) \
+            .join(Lecture, Task.lecture_id == Lecture.id) \
+            .join(Course, Lecture.course_id == Course.id) \
+            .filter(Course.id == course.id) \
+            .all()
 
-        for module, _ in modules_name:
-            modules[course].append(module.name)
+        for user in users_query:
+            users[course.name].append(user.login)
 
-    if form.is_submitted():
-        if str(form.mark.data) in [str(i) for i in range(11)]:
-            if form.username.data and form.module_name.data:
-                change_mark(form.username.data, form.module_name.data, form.mark.data)
-                flash("Оценка была изменена", "success_ch_m")
-                return redirect(url_for("courses.change_marks"))
-
-            flash("Не все поля заполнены", "error_ch_m")
-
-        flash("Некорректная оценка", "error_ch_m")
-    # print("Форма не прошла")
-
+        for task in tasks_query:
+            tasks[course.name].append(task.name)
     return render_template(
         "change_mark.html",
         form=form,
-        modules=modules,
-        courses=users,
+        tasks=tasks,
+        users=users,
         title="Change mark",
         page='change mark'
     )
@@ -77,35 +70,26 @@ def change_marks():
 @courses_bp.route("/courses/start/", methods=["post", "get"])
 @login_required(roles=[UserRole.admin])
 def start_course():
-    courses = db.session.query(Course).all()
-    users: t.Dict[str, t.List[str]] = {}
-    for course in COURSES:
-        users[course] = []
-        names_query = db.session.query(Course, Enrollment, User) \
-            .join(Course, Enrollment.course_id == Course.id) \
-            .join(User, User.id == Enrollment.user_id) \
-            .filter(Course.name == course) \
-            .all()
+    courses = db.session.query(Course).filter_by(is_started=False).all()
+    for course in courses:
+        if course.name + '_start' in request.form:
 
-        for _, _, name in names_query:
-            users[course].append(name.login)
+            if course:
+                course.is_started = True
+                db.session.flush()
 
-        if course + '_start' in request.form:
-            try:
-                db.session.query(Course).filter(
-                    Course.name == course
-                ).update({"is_started": True})
-                db.session.commit()
-            except Exception as e:
-                db.session.rollback()
-                raise e
-            finally:
-                db.session.close()
-            flash("Запущен курс " + course, "success_start_course")
+            start = datetime.now()
+
+            for i, lecture in enumerate(course.lectures, 1):
+                for task in lecture.tasks:
+                    task.deadline = start + timedelta(days=i * 7)
+
+            db.session.commit()
+            flash("Запущен курс " + course.name, "success_start_course")
+
             return redirect(url_for("courses.start_course"))
 
-    return render_template(
-        "start_course.html", courses=courses, title="Start course", page='start course')
+    return render_template("start_course.html", courses=courses, title="Start course", page='start course')
 
 
 @courses_bp.route("/courses/create/", methods=["post", "get"])
@@ -125,8 +109,13 @@ def create_course():
         # add_lectures(db, list_lectures)
 
     return render_template(
-        "create_course.html", form_course=form_course, form_lecture=form_lecture, courses=[c.name for c in courses],
-        title="Create course", page='create course')
+        "create_course.html",
+        form_course=form_course,
+        form_lecture=form_lecture,
+        courses=[c.name for c in courses],
+        title="Create course",
+        page='create course'
+    )
 
 
 @courses_bp.route("/courses/", methods=["post", "get"])
@@ -180,7 +169,7 @@ def course_details(name):
 @courses_bp.route("/courses/<course_name>/<lecture_name>")
 @login_required
 def lecture_details(course_name, lecture_name):
-    course = _get_object_or_404(Course, name=course_name)
+    course = _get_object_or_404(Course, name=course_name, is_started=True)
     lecture = _get_object_or_404(Lecture, course_id=course.id, name=lecture_name)
     tasks = db.session.query(Task).filter_by(lecture_id=lecture.id)
     return render_template("lecture.html", course=course_name, lecture=lecture, tasks=tasks)
@@ -191,7 +180,12 @@ def lecture_details(course_name, lecture_name):
 def task_details(task_id):
     task = _get_object_or_404(Task, id=task_id)
 
-    solutions = db.session.query(TaskSolution).filter_by(task=task, user=current_user).order_by(TaskSolution.created_at).all()
+    if not task.lecture.course.is_started:
+        return abort(status=404, description="Объект не найден")
+
+    solutions = db.session.query(TaskSolution).filter_by(task=task, user=current_user).order_by(
+        TaskSolution.created_at).all()
+
     with StoreManager(db.session):
         form = SendSolutionForm()
         if form.validate_on_submit():
@@ -204,7 +198,6 @@ def task_details(task_id):
             db.session.add(solution)
             db.session.flush()
             solution.commit_sha = commit_solution(solution)
-            db.session.add(solution)
             db.session.commit()
 
             return redirect(url_for('courses.task_details', task_id=task.id))
@@ -224,11 +217,20 @@ def solution_update(update_token):
     solution: TaskSolution = _get_object_or_404(TaskSolution, update_token=update_token)
 
     with StoreManager(db.session):
-        form = UpdateSolutionForm(csrf_enabled=False)
+        form = UpdateSolutionForm()
         if form.validate_on_submit():
             if form.logs.data:
                 solution.logs = SolutionLogsFile.create_from(form.logs.data, extension='.log')
+
             solution.status = TaskSolution.Status(form.status.data)
+
+            if solution.status == TaskSolution.Status.done:
+
+                if datetime.now() <= solution.task.deadline:
+                    solution.mark = 10
+                else:
+                    solution.mark = 5
+
             db.session.commit()
         else:
             response = make_response(str(form.errors), 400)
@@ -240,17 +242,13 @@ def solution_update(update_token):
     return response
 
 
-@courses_bp.route("/courses/<course_name>/marks")
+@courses_bp.route("/courses/<int:course_id>/marks")
 @login_required
-def marks(course_name):
-    course = db.session.query(Course).filter(Course.name == course_name).first()
-    user_marks = (
-        db.session.query(User, Mark, Module)
-            .join(Mark, User.id == Mark.user_id)
-            .join(Module, Module.id == Mark.module_id)
-            .filter(User.login == current_user.login)
-            .filter(Module.course_id == course.id)
-            .all()
+def marks(course_id: int):
+    course = _get_object_or_404(Course, id=course_id)
+    solutions = db.session.query(TaskSolution).join(Task).join(Lecture).join(User).filter(
+        Lecture.course_id == course_id,
+        Task.user == current_user
     )
     return render_template("marks.html", title="Marks", user_marks=user_marks, course=course, page='marks')
 

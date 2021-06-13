@@ -3,16 +3,16 @@ from wtforms import (
     FieldList, Form, FormField, IntegerField, SelectField, StringField, SubmitField, FileField,
     validators
 )
-from wtforms.validators import InputRequired, ValidationError
+from wtforms.validators import InputRequired, ValidationError, NumberRange
 
 from app.models import TaskSolution
 
 
 class ChangeMarkForm(FlaskForm):
-    course_name = SelectField("Курс")
-    username = SelectField("Студент")
-    module_name = SelectField("Практика")
-    mark = IntegerField("Оценка")
+    course_name = SelectField("Курс", validators=[InputRequired()])
+    username = SelectField("Студент", validators=[InputRequired()])
+    task_name = SelectField("Практика", validators=[InputRequired()])
+    mark = IntegerField("Оценка", validators=[NumberRange(min=0, max=10)])
     submit = SubmitField("ОК")
 
 
@@ -53,3 +53,6 @@ class UpdateSolutionForm(FlaskForm):
         (TaskSolution.Status.failed.value, TaskSolution.Status.failed.value),
         (TaskSolution.Status.testing.value, TaskSolution.Status.testing.value),
     ], validators=[validators.required()])
+
+    class Meta(FlaskForm.Meta):
+        csrf = False

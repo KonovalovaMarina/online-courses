@@ -23,8 +23,8 @@
                                         {{ form.username(class="form-control") }}
                                     </div>
                                     <div class="form-group">
-                                        {{ form.module_name.label() }}
-                                        {{ form.module_name(class="form-control") }}
+                                        {{ form.task_name.label() }}
+                                        {{ form.task_name(class="form-control") }}
                                     </div>
                                     <div class="form-group">
                                         {{ form.mark.label() }}
@@ -57,15 +57,15 @@
             <script>
                 "use strict";
 
-                var courses = {{ courses|tojson }};
-                var courses_modules = {{ modules|tojson }};
+                var courses_users = {{ users|tojson }};
+                var courses_tasks = {{ tasks|tojson }};
 
                 var form = $('form');
                 var course = $('select#course_name');
                 var user = $('select#username');
-                var module = $('select#module_name');
+                var module = $('select#task_name');
 
-                for (var key in courses) {
+                for (var key in courses_users) {
                     course.append($('<option/>', {'value': key, 'text': key}));
                 }
 
@@ -75,14 +75,14 @@
                     module.empty();
                     module.append($('<option/>'));
 
-                    var users = courses[course.val()];
-                    var modules = courses_modules[course.val()];
+                    var users = courses_users[course.val()];
+                    var tasks = courses_tasks[course.val()];
 
                     for (var i in users) {
                         user.append($('<option/>', {'value': users[i], 'text': users[i]}));
                     }
-                    for (var i in modules) {
-                        module.append($('<option/>', {'value': modules[i], 'text': modules[i]}));
+                    for (var i in tasks) {
+                        module.append($('<option/>', {'value': tasks[i], 'text': tasks[i]}));
                     }
                 });
             </script>

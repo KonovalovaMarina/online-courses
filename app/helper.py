@@ -206,19 +206,6 @@ def create_student():
     db.session.commit()
 
 
-def change_mark(username: str, module_name: str, mark: int):
-    try:
-        user = db.session.query(User).filter(User.login == username).first()
-        module = db.session.query(Module).filter(Module.name == module_name).first()
-        db.session.query(Mark).filter(Mark.user_id == user.id, Mark.module_id == module.id).update({"mark": mark})
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        raise e
-    finally:
-        db.session.close()
-
-
 def init_database():
     init_courses()
     init_modules([python_course])

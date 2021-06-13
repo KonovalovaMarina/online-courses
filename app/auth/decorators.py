@@ -11,7 +11,7 @@ def login_required(func=None, roles=()):
         @wraps(func)
         def _wrapped(*args, **kwargs):
             if roles and current_user.role not in roles:
-                return abort(403, description="Access Dnied")
+                return abort(403, description="Access Denied")
             return func(*args, **kwargs)
         return _wrapped
 

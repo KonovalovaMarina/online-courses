@@ -25,6 +25,7 @@ class Task(db.Model):
     name = db.Column(db.String(150), nullable=False)
     code = db.Column(db.String(50), nullable=False, unique=True)
     text = db.Column(db.Text, nullable=False)
+    deadline = db.Column(db.DateTime)
 
     lecture = so.relationship(Lecture, backref=so.backref("tasks", cascade="all,delete-orphan"))
 
