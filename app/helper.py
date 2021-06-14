@@ -117,8 +117,8 @@ COURSES = ['python', 'c++']
 
 
 TASKS = [
-    {"name": "Hello world", "code": "hello_world", "text": "<p>Напишите фцнкцию которая возвращает текст \"Hello World\"</p><p>Загрузите файл содержащий функцию <code>def hello_world():</code></p>", "lecture_index": 0},
-    {"name": "Hello universe", "code": "hello_universe", "text": "<p>Напишите фцнкцию которая возвращает текст \"Hello Universe\"</p><p>Загрузите файл содержащий функцию <code>def hello_universe():</code></p>", "lecture_index": 0}
+    {"name": "Hello world", "code": "hello_world", "text": "<p>Напишите функцию которая возвращает текст \"Hello World\"</p><p>Загрузите файл содержащий функцию <code>def hello_world():</code></p>", "lecture_index": 0},
+    {"name": "Hello universe", "code": "hello_universe", "text": "<p>Напишите функцию которая возвращает текст \"Hello Universe\"</p><p>Загрузите файл содержащий функцию <code>def hello_universe():</code></p>", "lecture_index": 0}
 ]
 
 
