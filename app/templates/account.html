@@ -36,13 +36,12 @@
                             </div>
                         </div>
                         <div class="panel-footer">
-                            <form action="" method="post">
+                            {% set next = url_for('auth.account') %}
+                            <form action="{{ url_for('courses.unsubscribe_course', name=course.name, next=next) }}" method="post">
                                 <div class="row" style="margin-left: -5px">
-                                    <input class="col btn btn-danger" type="submit" name="{{ course_unsubscribe }}" value="Отписаться">
-
-                                        <a class="col btn btn-primary" href="{{ url_for('courses.course_details', name=course.name) }}" role="button">Перейти к курсу</a>
-                                        <a class="col btn btn-primary" href="{{ url_for('courses.marks', course_id=course.id) }}" role="button">Оценки</a>
-
+                                    <input class="col btn btn-danger" type="submit" value="Отписаться">
+                                    <a class="col btn btn-primary" href="{{ url_for('courses.course_details', name=course.name) }}" role="button">Перейти к курсу</a>
+                                    <a class="col btn btn-primary" href="{{ url_for('courses.marks', name=course.name) }}" role="button">Оценки</a>
                                 </div>
                             </form>
                         </div>

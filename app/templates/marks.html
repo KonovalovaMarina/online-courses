@@ -28,11 +28,11 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    {% for _, mark, module in user_marks %}
+                                    {% for solution in solutions %}
                                         <tr>
-                                            <td>{{module.name}}</td>
-                                            <td>{{mark.mark}}</td>
-                                            <td>{{module.deadline.date().strftime("%A, %d. %B %Y")}}</td>
+                                            <td>{{solution.task.name}}</td>
+                                            <td>{{solution.mark}}</td>
+                                            <td>{{solution.task.deadline.date().strftime("%A, %d. %B %Y")}}</td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>

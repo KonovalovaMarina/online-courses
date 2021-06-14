@@ -23,16 +23,20 @@
                                 </div>
                             </div>
                         </div>
-                        {% set course_subscribe = course.name + '_subscribe' %}
-                        {% set course_unsubscribe = course.name + '_unsubscribe' %}
                         <div class="panel-footer">
-                            <form action="" method="post">
+                            <form action="{% if course.id in subscriptions %}
+                                            {{- url_for('courses.unsubscribe_course', name=course.name) }}
+                                          {%- else %}
+                                            {{- url_for('courses.subscribe_course', name=course.name) }}
+                                          {%- endif %}" method="post">
                                 <div class="row" style="margin-left: -5px">
-                                    {% if course.id in enroll %}
-                                        <input class="col btn btn-danger" type="submit" name="{{ course_unsubscribe }}" value="Отписаться">
-                                        <a class="col btn btn-primary" href="{{ url_for('courses.course_details', name=course.name) }}" role="button">Перейти к курсу</a>
+                                    {% if course.id in subscriptions %}
+                                        <input class="col btn btn-danger" type="submit" value="Отписаться">
+                                        {%  if course.is_started %}
+                                            <a class="col btn btn-primary" href="{{ url_for('courses.course_details', name=course.name) }}" role="button">Перейти к курсу</a>
+                                        {% endif %}
                                     {% else %}
-                                        <input class="btn btn-success" type="submit" name="{{ course_subscribe }}" value="Записаться">
+                                        <input class="btn btn-success" type="submit" value="Записаться">
                                     {% endif %}
                                 </div>
                             </form>

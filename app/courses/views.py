@@ -1,18 +1,23 @@
 import typing as t
-from collections import defaultdict
 from datetime import datetime, timedelta
+from itertools import groupby
+from operator import attrgetter
 
-from flask import Blueprint, abort, flash, make_response, redirect, render_template, request, url_for
+from flask import Blueprint, abort, flash, make_response, redirect, render_template, request, url_for, g
 from flask_login import current_user
 
 from app.git_api import commit_solution
 from app.auth.decorators import login_required
-from app.courses.forms import AddLectureForm, ChangeMarkForm, UpdateSolutionForm, CreateCourseForm, SendSolutionForm
-from app.helper import COURSES, add_course
+from app.courses.forms import (
+    AddLectureForm, ChangeMarkForm, SelectCourseForm, UpdateSolutionForm, CreateCourseForm,
+    SendSolutionForm
+)
+from app.helper import add_course
 from app.models import (
-    SolutionLogsFile, TaskSolution, db, Course, Enrollment, Lecture, Mark, Module, Task, User, UserRole, SolutionFile,
+    SolutionLogsFile, TaskSolution, db, Course, Enrollment, Lecture, Task, User, UserRole, SolutionFile,
     StoreManager
 )
+import sqlalchemy as sa
 
 courses_bp = Blueprint('courses', __name__)
 
@@ -20,13 +25,13 @@ courses_bp = Blueprint('courses', __name__)
 @courses_bp.route("/courses/change_mark/", methods=["post", "get"])
 @login_required(roles=[UserRole.admin])
 def change_marks():
+    g.course_form = course_form = SelectCourseForm()
+
     form = ChangeMarkForm()
 
-    if form.validate_on_submit():
-        user = db.session.query(User).filter(User.login == form.username.data).first()
-        task = db.session.query(Task).filter(Task.name == form.task_name.data).first()
+    if course_form.validate_on_submit() and form.validate_on_submit():
         task_solution = db.session.query(TaskSolution).filter_by(
-            task=task, user=user
+            task=form.task.data, user=form.user.data
         ).order_by(TaskSolution.created_at.desc()).first()
 
         if task_solution:
@@ -36,8 +41,8 @@ def change_marks():
         flash("Оценка была изменена", "success_ch_m")
         return redirect(url_for("courses.change_marks"))
 
-    users: t.Dict[str, t.List[str]] = defaultdict(list)
-    tasks: t.Dict[str, t.List[str]] = defaultdict(list)
+    users = {}
+    tasks = {}
 
     for course in db.session.query(Course).all():
         users_query = db.session.query(User) \
@@ -52,14 +57,13 @@ def change_marks():
             .filter(Course.id == course.id) \
             .all()
 
-        for user in users_query:
-            users[course.name].append(user.login)
+        users[course.id] = [(u.id, u.login) for u in users_query]
+        tasks[course.id] = [(t.id, t.name) for t in tasks_query]
 
-        for task in tasks_query:
-            tasks[course.name].append(task.name)
     return render_template(
         "change_mark.html",
         form=form,
+        course_form=course_form,
         tasks=tasks,
         users=users,
         title="Change mark",
@@ -96,7 +100,6 @@ def start_course():
 @login_required(roles=[UserRole.admin])
 def create_course():
     courses = db.session.query(Course).all()
-    print([c.name for c in courses])
 
     form_course = CreateCourseForm()
     if form_course.validate_on_submit():
@@ -118,35 +121,52 @@ def create_course():
     )
 
 
-@courses_bp.route("/courses/", methods=["post", "get"])
+@courses_bp.route("/courses/<name>/subscribe", methods=["POST"])
+@login_required
+def subscribe_course(name):
+    course = _get_object_or_404(Course, name=name)
+    enrollments_query = db.session.query(Enrollment).filter(Enrollment.user == current_user)
+    if db.session.query(enrollments_query.filter(Enrollment.course == course).exists()).scalar():
+        flash("Вы уже подписаны на этот курс", "error_courses")
+    elif db.session.query(enrollments_query.exists()).scalar():
+        flash("Можно записаться только на один курс в семестре", "error_courses")
+    else:
+        enrollment = Enrollment(user_id=current_user.id, course_id=course.id)
+        db.session.add(enrollment)
+        db.session.commit()
+
+    return redirect(request.args.get('next', url_for('courses.list_courses')))
+
+
+@courses_bp.route("/courses/<name>/unsubscribe", methods=["POST"])
+@login_required
+def unsubscribe_course(name):
+    course = _get_object_or_404(Course, name=name)
+    enrollment = db.session.query(Enrollment).filter(
+        Enrollment.course == course,
+        Enrollment.user == current_user
+    ).one_or_none()
+
+    if not enrollment:
+        flash("Вы уже отписаны от этого курса", "error_courses")
+    else:
+        db.session.delete(enrollment)
+        db.session.commit()
+
+    return redirect(request.args.get('next', url_for('courses.list_courses')))
+
+
+@courses_bp.route("/courses/", methods=["GET"])
 @login_required
 def list_courses():
     courses = db.session.query(Course).all()
 
-    for course in courses:
-        if course.name + '_subscribe' in request.form:
+    subscriptions = {
+        en.course_id for en in
+              db.session.query(Enrollment.course_id).filter(Enrollment.user == current_user).all()
+    }
 
-            if not db.session.query(Enrollment).filter(Enrollment.user_id == current_user.id).first():
-                enrollment = Enrollment(user_id=current_user.id, course_id=course.id)
-                db.session.add(enrollment)
-                db.session.commit()
-            else:
-                flash("Можно записаться только на один курс в семестре", "error_courses")
-
-        if course.name + '_unsubscribe' in request.form:
-            enrollment = db.session.query(Enrollment).filter(
-                Enrollment.user_id == current_user.id,
-                Enrollment.course_id == course.id
-            ).first()
-
-            if enrollment:
-                db.session.delete(enrollment)
-                db.session.commit()
-
-    enroll = [en[0] for en in
-              db.session.query(Enrollment.course_id).filter(Enrollment.user_id == current_user.id).all()]
-
-    return render_template("courses.html", courses=courses, enroll=enroll, title="Courses", page='courses')
+    return render_template("courses.html", courses=courses, subscriptions=subscriptions, title="Courses", page='courses')
 
 
 def _get_object_or_404(model: t.Type[db.Model], **kwargs):
@@ -159,7 +179,7 @@ def _get_object_or_404(model: t.Type[db.Model], **kwargs):
 @courses_bp.route("/courses/<name>")
 @login_required
 def course_details(name):
-    course = _get_object_or_404(Course, name=name)
+    course = _get_object_or_404(Course, name=name, is_started=True)
     lectures = db.session.query(Lecture).filter(
         Lecture.course_id == course.id
     ).all()
@@ -242,48 +262,58 @@ def solution_update(update_token):
     return response
 
 
-@courses_bp.route("/courses/<int:course_id>/marks")
+def get_solutions(course: Course, user: User = None):
+    s = db.session.query(
+        TaskSolution,
+        sa.func.first_value(TaskSolution.id).over(
+            partition_by=TaskSolution.task_id,
+            order_by=TaskSolution.created_at.desc()
+        ).label("latest_id")
+    ).join(Task).join(Lecture).join(User).filter(
+        Lecture.course == course
+    ).order_by(TaskSolution.user_id, Lecture.id)
+
+    if user is not None:
+        s = s.filter(TaskSolution.user == user)
+    s = s.subquery('s')
+    solutions = db.session.query(TaskSolution).select_entity_from(s).filter(s.c.id == s.c.latest_id)
+    return solutions
+
+
+@courses_bp.route("/courses/<name>/marks")
 @login_required
-def marks(course_id: int):
-    course = _get_object_or_404(Course, id=course_id)
-    solutions = db.session.query(TaskSolution).join(Task).join(Lecture).join(User).filter(
-        Lecture.course_id == course_id,
-        Task.user == current_user
-    )
-    return render_template("marks.html", title="Marks", user_marks=user_marks, course=course, page='marks')
+def marks(name: str):
+    course = _get_object_or_404(Course, name=name)
+    solutions = get_solutions(course, current_user)
+    return render_template("marks.html", title="Marks", solutions=solutions, course=course, page='marks')
 
 
 @courses_bp.route("/marks_table/", methods=["post", "get"])
 @login_required(roles=[UserRole.admin])
 def marks_table():
-    users_marks: t.Dict[str, t.Dict[str, t.List[t.Tuple[str, str]]]] = {}
 
-    for course_name in COURSES:
-        users_marks[course_name] = {}
-        course = db.session.query(Course).filter(Course.name == course_name).first()
-        names_query = (db.session.query(Course, Enrollment, User)
-                       .join(Course, Enrollment.course_id == Course.id)
-                       .join(User, User.id == Enrollment.user_id)
-                       .filter(Course.name == course_name)
-                       .all())
+    def _get_mark_table():
+        for course in db.session.query(Course).all():
+            tasks = db.session.query(Task).join(Lecture).filter(Lecture.course == course).order_by(Task.id).all()
+            tasks_index = {t.id: i for i, t in enumerate(tasks)}
+            users = set(db.session.query(User).join(Enrollment).filter(Enrollment.course==course).all())
 
-        for _, _, user in names_query:
-            users_marks[course_name][user.login] = []
-            user_marks = (
-                db.session.query(User, Mark, Module)
-                    .join(Mark, User.id == Mark.user_id)
-                    .join(Module, Module.id == Mark.module_id)
-                    .filter(User.login == user.login)
-                    .filter(Module.course_id == course.id)
-                    .all()
-            )
+            def _get_user_solutions():
+                solutions = get_solutions(course=course)
+                for user, user_solutions in groupby(solutions, key=attrgetter('user')):
+                    _user_solutions = [None] * len(tasks)
+                    for s in user_solutions:
+                        _user_solutions[tasks_index[s.task_id]] = s
+                    users.discard(user)
+                    yield user, _user_solutions
+                for user in users:
+                    yield user, [None] * len(tasks)
 
-            for _, mark, module in user_marks:
-                users_marks[course_name][user.login].append((module.name, mark.mark))
+            yield course, tasks, _get_user_solutions()
 
     return render_template(
         "marks_table.html",
         title="Marks_table",
-        users_marks=users_marks,
+        users_marks=_get_mark_table(),
         page='marks_table'
     )
