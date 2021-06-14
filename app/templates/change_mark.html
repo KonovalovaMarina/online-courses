@@ -14,21 +14,34 @@
                             </div>
                             <div class="panel-body">
                                 <form role="form" action="" method="post">
+                                    {{ form.csrf_token() }}
                                     <div class="form-group">
-                                         {{ form.course_name.label() }}
-                                         {{ form.course_name(class="form-control") }}
+                                        {{ course_form.course.label() }}
+                                        {{ course_form.course(class="form-control") }}
+                                        {% for error in course_form.course.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
                                     </div>
                                     <div class="form-group">
-                                        {{ form.username.label() }}
-                                        {{ form.username(class="form-control") }}
+                                        {{ form.user.label() }}
+                                        {{ form.user(class="form-control") }}
+                                        {% for error in form.user.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
                                     </div>
                                     <div class="form-group">
-                                        {{ form.task_name.label() }}
-                                        {{ form.task_name(class="form-control") }}
+                                        {{ form.task.label() }}
+                                        {{ form.task(class="form-control") }}
+                                        {% for error in form.task.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
                                     </div>
                                     <div class="form-group">
                                         {{ form.mark.label() }}
                                         {{ form.mark(class="form-control", placeholder="Введите оценку") }}
+                                        {% for error in form.mark.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                        {% endfor %}
                                     </div>
                                     <div class="form-group">
                                         {{ form.submit(class="btn btn-default") }}
@@ -42,50 +55,52 @@
                     {{ message }}
                 </div>
 		    {% endfor %}
-            {% for category, message in get_flashed_messages(with_categories=true, category_filter=["error_ch_m"]) %}
-                <div class="alert alert-danger" style="width: 25%">
-                    {{ message }}
-                </div>
-		    {% endfor %}
-            {% for error in form.mark.errors %}
-                <div class="alert alert-danger" style="width: 25%">
-                    {{ error }}
-                </div>
-            {% endfor %}
-
-            <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
-            <script>
-                "use strict";
-
-                var courses_users = {{ users|tojson }};
-                var courses_tasks = {{ tasks|tojson }};
-
-                var form = $('form');
-                var course = $('select#course_name');
-                var user = $('select#username');
-                var module = $('select#task_name');
-
-                for (var key in courses_users) {
-                    course.append($('<option/>', {'value': key, 'text': key}));
-                }
-
-                course.change(function(ev) {
-                    user.empty();
-                    user.append($('<option/>'));
-                    module.empty();
-                    module.append($('<option/>'));
-
-                    var users = courses_users[course.val()];
-                    var tasks = courses_tasks[course.val()];
-
-                    for (var i in users) {
-                        user.append($('<option/>', {'value': users[i], 'text': users[i]}));
-                    }
-                    for (var i in tasks) {
-                        module.append($('<option/>', {'value': tasks[i], 'text': tasks[i]}));
-                    }
-                });
-            </script>
         </div>
     </div>
 {% endblock %}
+
+{% block scripts %}
+    <script>
+        "use strict";
+
+        var courses_users = {{ users|tojson }};
+        var courses_tasks = {{ tasks|tojson }};
+
+        let $course = $('select#course');
+        let $user = $('select#user');
+        let $task = $('select#task');
+        let $mark = $('input#mark');
+
+        let emptyValue = '__None'
+
+        $course.change(function(ev) {
+            $user.empty();
+            $task.empty();
+            $user.append($('<option/>', {'value': emptyValue, 'text': '-------'}));
+            $task.append($('<option/>', {'value': emptyValue, 'text': '-------'}));
+
+            $user.prop( "disabled", true );
+            $task.prop( "disabled", true );
+            $mark.prop( "disabled", true );
+
+            let courseId = $course.val();
+
+            if (courseId !== emptyValue) {
+                $user.prop( "disabled", false );
+                $task.prop( "disabled", false );
+                $mark.prop( "disabled", false );
+
+                let users = courses_users[$course.val()];
+                let tasks = courses_tasks[$course.val()];
+
+                for (let item of users) {
+                    $user.append($('<option/>', {'value': item[0], 'text':  item[1]}));
+                }
+                for (let item of tasks) {
+                    $task.append($('<option/>', {'value': item[0], 'text': item[1]}));
+                }
+            }
+
+        }).trigger('change');
+    </script>
+{% endblock%}

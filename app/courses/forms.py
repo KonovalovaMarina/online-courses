@@ -1,17 +1,66 @@
+from flask import g
 from flask_wtf import FlaskForm
 from wtforms import (
-    FieldList, Form, FormField, IntegerField, SelectField, StringField, SubmitField, FileField,
+    FieldList, FormField, IntegerField, SelectField, StringField, SubmitField, FileField,
     validators
 )
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
 from wtforms.validators import InputRequired, ValidationError, NumberRange
 
-from app.models import TaskSolution
+from app.models import Course, Enrollment, Lecture, Task, TaskSolution, User, UserRole, db
+
+
+class SelectCourseForm(FlaskForm):
+    course = QuerySelectField(
+        "Курс",
+        query_factory=lambda: db.session.query(Course).all(),
+        get_label="name",
+        allow_blank=True,
+        blank_text="-------",
+        validators=[InputRequired()]
+    )
+
+
+def course_users_query():
+    query = db.session.query(User) \
+        .join(Enrollment) \
+        .join(Course)
+
+    if g.course_form.course.data is not None:
+        query = query.filter(Course.id == g.course_form.course.data.id)
+    else:
+        query = query.filter(False)
+    return query.all()
+
+
+def course_tasks_query():
+    query = db.session.query(Task) \
+        .join(Lecture) \
+        .join(Course)
+    if g.course_form.course.data is not None:
+        query = query.filter(Course.id == g.course_form.course.data.id)
+    else:
+        query = query.filter(False)
+    return query.all()
 
 
 class ChangeMarkForm(FlaskForm):
-    course_name = SelectField("Курс", validators=[InputRequired()])
-    username = SelectField("Студент", validators=[InputRequired()])
-    task_name = SelectField("Практика", validators=[InputRequired()])
+    user = QuerySelectField(
+        "Студент",
+        query_factory=course_users_query,
+        get_label="login",
+        allow_blank=True,
+        blank_text="-------",
+        validators=[InputRequired()]
+    )
+    task = QuerySelectField(
+        "Практика",
+        query_factory=course_tasks_query,
+        get_label="name",
+        allow_blank=True,
+        blank_text="-------",
+        validators=[InputRequired()]
+    )
     mark = IntegerField("Оценка", validators=[NumberRange(min=0, max=10)])
     submit = SubmitField("ОК")
 

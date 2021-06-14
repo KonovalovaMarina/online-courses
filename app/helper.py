@@ -1,10 +1,8 @@
 import typing as t
-from datetime import datetime
-
-from app.deadlines import python_course
 from app.models.base import db
-from app.models import Course, Lecture, Mark, Module, Task, User
+from app.models import Course, Lecture, Task, User
 from app.models.user import UserRole
+
 
 LECTURES: t.List[t.Tuple[str, str, int]] = [
     ("Python. Первая Лекция",
@@ -115,20 +113,205 @@ LECTURES: t.List[t.Tuple[str, str, int]] = [
     ("c++ video 1", "https://youtu.be/FGTcj6kSzGA", 2)]
 COURSES = ['python', 'c++']
 
-
 TASKS = [
-    {"name": "Hello world", "code": "hello_world", "text": "<p>Напишите фцнкцию которая возвращает текст \"Hello World\"</p><p>Загрузите файл содержащий функцию <code>def hello_world():</code></p>", "lecture_index": 0},
-    {"name": "Hello universe", "code": "hello_universe", "text": "<p>Напишите фцнкцию которая возвращает текст \"Hello Universe\"</p><p>Загрузите файл содержащий функцию <code>def hello_universe():</code></p>", "lecture_index": 0}
+    # LECTURE 1
+    {
+        "name": "Hello world",
+        "code": "hello_world",
+        "text": "<p>Напишите фцнкцию которая возвращает текст \"Hello World\"</p><p>Загрузите файл содержащий функцию <code>def hello_world():</code></p>",
+        "lecture_index": 0
+    },
+    {
+        "name": "Common types",
+        "code": "common_types",
+        "text": "",
+        "lecture_index": 0
+    },
+    {
+        "name": "Common types 2",
+        "code": "common_types_2",
+        "text": "",
+        "lecture_index": 0
+    },
+    {
+        "name": "Bin tricky",
+        "code": "bin_tricky",
+        "text": "",
+        "lecture_index": 0
+    },
+    {
+        "name": "Middle value of triple",
+        "code": "middle_value_of_triple",
+        "text": "",
+        "lecture_index": 0
+    },
+    {
+        "name": "Fizz buzz",
+        "code": "fizz_buzz",
+        "text": "",
+        "lecture_index": 0
+    },
+    {
+        "name": "Iterate me",
+        "code": "iterate_me",
+        "text": "",
+        "lecture_index": 0
+    },
+    {
+        "name": "Reverse List",
+        "code": "reverse_list",
+        "text": "",
+        "lecture_index": 0
+    },
+    {
+        "name": "Make assert",
+        "code": "make_assert",
+        "text": "",
+        "lecture_index": 0
+    },
+    {
+        "name": "Merge list",
+        "code": "merge_list",
+        "text": "",
+        "lecture_index": 0
+    },
+    {
+        "name": "Filter list by list",
+        "code": "filter_list_by_list",
+        "text": "",
+        "lecture_index": 0
+    },
+    {
+        "name": "Bin basic",
+        "code": "bin_basic",
+        "text": "",
+        "lecture_index": 0
+    },
+    {
+        "name": "Bin peak",
+        "code": "bin_peak",
+        "text": "",
+        "lecture_index": 0
+    },
+    {
+        "name": "Bin min",
+        "code": "bin_min",
+        "text": "",
+        "lecture_index": 0
+    },
+
+    # LECTURE 2
+    {
+        "name": "Banner search system",
+        "code": "banner_search_system",
+        "text": "",
+        "lecture_index": 1
+    },
+    {
+        "name": "Alphabet",
+        "code": "alphabet",
+        "text": "",
+        "lecture_index": 1
+    },
+    {
+        "name": "Rt join",
+        "code": "rt_join",
+        "text": "",
+        "lecture_index": 1
+    },
+    {
+        "name": "Reverse dict",
+        "code": "reverse_dict",
+        "text": "",
+        "lecture_index": 1
+    },
+    {
+        "name": "Min to drop",
+        "code": "min_to_drop",
+        "text": "",
+        "lecture_index": 1
+    },
+    {
+        "name": "Comprehensions",
+        "code": "comprehensions",
+        "text": "",
+        "lecture_index": 1
+    },
+    {
+        "name": "Traverse dictionary",
+        "code": "traverse_dictionary",
+        "text": "",
+        "lecture_index": 1
+    },
+    {
+        "name": "Merge list 2",
+        "code": "merge_list_2",
+        "text": "",
+        "lecture_index": 1
+    },
+    #     # LECTURE 3
+    #     'tail': start_time + timedelta(weeks=6),
+    #     'git_blob': start_time + timedelta(weeks=6),
+    #     'git_log': start_time + timedelta(weeks=6),
+    #     'caesar_cipher': start_time + timedelta(weeks=6),
+    #     'count_util': start_time + timedelta(weeks=6),
+    #     'merge_list_3': start_time + timedelta(weeks=6),
+    #     'normalize_path': start_time + timedelta(weeks=6),
+    #     'input_': start_time + timedelta(weeks=6),
+    #     # PRE HW 1
+    #     'arg_binding': start_time + timedelta(weeks=8),
+    #     'codeops': start_time + timedelta(weeks=8),
+    #     'byteme': start_time + timedelta(weeks=8),
+    #     # HW 1
+    #     'vm': start_time + timedelta(weeks=10),
+    #     # LECTURE 4
+    #     'calc': start_time + timedelta(weeks=12),
+    #     'profiler': start_time + timedelta(weeks=12),
+    #     'lru_cache': start_time + timedelta(weeks=12),
+    #     # LECTURE 5
+    #     'numpy_basic': start_time + timedelta(weeks=14),
+    #     'replace_nans': start_time + timedelta(weeks=14),
+    #     'nonzero_product': start_time + timedelta(weeks=14),
+    #     'nearest_value': start_time + timedelta(weeks=14),
+    #     'max_element': start_time + timedelta(weeks=14),
+    #     'add_zeros': start_time + timedelta(weeks=14),
+    #     'vander': start_time + timedelta(weeks=14),
+    #     # LECTURE 6
+    #     'life_game': start_time + timedelta(weeks=16),
+    #     'list_twist': start_time + timedelta(weeks=16),
+    #     'game_has_no_name': start_time + timedelta(weeks=16),
+    #     'typy': start_time + timedelta(weeks=16),
+    #     'typy_generic': start_time + timedelta(weeks=16),
+    #     'typy_protocol': start_time + timedelta(weeks=16),
+    #     # LECTURE 7
+    #     'context_manager': start_time + timedelta(weeks=18),
+    #     'broken_module': start_time + timedelta(weeks=18),
+    #     'banner_engine': start_time + timedelta(weeks=18),
+    #     # LECTURE 8
+    #     'warm_it': start_time + timedelta(weeks=20),
+    #     'flat_it': start_time + timedelta(weeks=20),
+    #     'range': start_time + timedelta(weeks=1),
+    #     'pyos': start_time + timedelta(weeks=1),
+    #     # PRE HW 2
+    #     'diesel_power': start_time + timedelta(weeks=1),
+    #     # HW 2
+    #     'compgraph': start_time + timedelta(weeks=1),
+    #     # LECTURE 10-10.5
+    #     'visualization': start_time + timedelta(weeks=1),
+    #     'translation_chains': start_time + timedelta(weeks=1),
+    #     'wiki_distance': start_time + timedelta(weeks=1),
+    #     # LECTURE 11
+    #     'property_converter': start_time + timedelta(weeks=1),
+    #     'temperature': start_time + timedelta(weeks=1),
+    #     # HW 3
+    #     'cinemabot': start_time + timedelta(weeks=1),
+    #     # LECTURE 12
+    #     'animals': start_time + timedelta(weeks=1),
+    #     # LECTURE 13
+    #     'fbs_parser': start_time + timedelta(weeks=1),
+    #     'sync_vs_async': start_time + timedelta(weeks=1),
+    #     'async_proxy': start_time + timedelta(weeks=1),
 ]
-
-
-def init_marks(user_id: int):
-    # за все практики при регистрации пользователя ему выставляются оценки 0
-    modules = db.session.query(Module).all()
-    for module in modules:
-        mark = Mark(user_id=user_id, module_id=module.id, mark=0)
-        db.session.add(mark)
-        db.session.commit()
 
 
 def init_courses():
@@ -136,16 +319,6 @@ def init_courses():
         course = Course(name=name_course)
         db.session.add(course)
     db.session.commit()
-
-
-def init_modules(deadline_list: t.List[t.Dict[str, datetime]]):
-    course_id = 1
-    for course in deadline_list:
-        for module_name, deadline in course.items():
-            record = Module(name=module_name, course_id=course_id, deadline=deadline)
-            db.session.add(record)
-        db.session.commit()
-        course_id += 1
 
 
 def init_lectures():
@@ -162,6 +335,8 @@ def init_tasks():
         task = Task(lecture_id=lecture.id, **data)
         db.session.add(task)
     db.session.commit()
+
+
 # сделать проверки на существование
 
 
@@ -171,18 +346,6 @@ def add_course(name_course):
         new_course = Course(name=name_course)
         db.session.add(new_course)
         db.session.commit()
-
-
-def add_modules(course_id: int, list_modules: t.Dict[str, datetime]):
-    for module_name, deadline in list_modules:
-        module = db.session.query(Module).filter(
-            Module.course_id == course_id,
-            Module.name == module_name
-        ).first()
-        if not module:
-            record = Module(name=module_name, course_id=course_id, deadline=deadline)
-            db.session.add(record)
-            db.session.commit()
 
 
 def add_lectures(list_lectures):
@@ -200,16 +363,16 @@ def create_admin():
     db.session.commit()
 
 
-def create_student():
-    admin = User(login='student', password="123", role=UserRole.student)
+def create_student(login):
+    admin = User(login=login, password="123", role=UserRole.student)
     db.session.add(admin)
     db.session.commit()
 
 
 def init_database():
     init_courses()
-    init_modules([python_course])
     init_lectures()
     init_tasks()
     create_admin()
-    create_student()
+    create_student('student')
+    create_student('student_1')

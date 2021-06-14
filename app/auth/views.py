@@ -1,9 +1,9 @@
-from flask import Blueprint, flash, render_template, request, url_for
-from flask_login import current_user, login_required, login_user, logout_user
+from flask import Blueprint, flash, render_template, url_for
+from flask_login import current_user, login_user, logout_user
 from werkzeug.utils import redirect
 
+from app.auth.decorators import login_required
 from app.auth.forms import LoginForm, RegistrationForm
-from app.helper import init_marks
 from app.models import db, Course, Enrollment, User
 from app.models.user import UserRole
 
@@ -46,7 +46,6 @@ def register():
             user = User(login=form.username.data, password=form.password.data, role=UserRole.student)
             db.session.add(user)
             db.session.commit()
-            init_marks(user.id)
             return redirect(url_for("auth.account"))
         else:
             flash("На этот логин уже был зарегестрирован аккаунт", "error_register")
@@ -62,34 +61,22 @@ def logout():
     return redirect(url_for("auth.login"))
 
 
-@auth_bp.route("/account/", methods=['post', 'get'])
+@auth_bp.route("/account/", methods=['get'])
 @login_required
 def account():
 
     if current_user.is_admin():
         return redirect(url_for("auth.admin"))
 
-    enrolment_with_course = db.session.query(Course, Enrollment) \
-        .join(Course, Enrollment.course_id == Course.id) \
-        .filter(Enrollment.user_id == current_user.id) \
+    course = db.session.query(Course) \
+        .join(Enrollment) \
+        .filter(Enrollment.user == current_user) \
         .first()
 
-    if enrolment_with_course:
-        course, enrollment = enrolment_with_course
-        if course.name in request.form:
-            db.session.delete(enrollment)
-            db.session.commit()
-            return render_template("account.html", course="", title="Account", page='account')
-
-        return render_template("account.html", course=course, title="Account", page='account')
-
-    return render_template("account.html", course="", title="Account", page='account')
+    return render_template("account.html", course=course, title="Account", page='account')
 
 
-@auth_bp.route("/admin/", methods=["post", "get"])
-@login_required
+@auth_bp.route("/admin/", methods=["get"])
+@login_required(roles=[UserRole.admin])
 def admin():
-    if current_user.is_admin():
-        return render_template("admin.html", title="Admin", page='account')
-    else:
-        return render_template("account.html", title="Account", page='account')
+    return render_template("admin.html", title="Admin", page='account')
